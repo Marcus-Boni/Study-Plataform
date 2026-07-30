@@ -1,0 +1,25 @@
+name: Setup
+description: Instala o Bun na versão fixada no package.json e as dependências, com cache.
+
+runs:
+  using: composite
+  steps:
+    # Lê o campo `packageManager` do package.json: a versão do Bun no CI é a
+    # mesma da máquina local, sem duplicar o número aqui.
+    - name: Instala o Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
+
+    - name: Cache do store do Bun
+      uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+        restore-keys: ${{ runner.os }}-bun-
+
+    # --frozen-lockfile falha se o bun.lock estiver dessincronizado do
+    # package.json, em vez de resolver versões novas silenciosamente.
+    - name: Instala as dependências
+      run: bun install --frozen-lockfile
+      shell: bash

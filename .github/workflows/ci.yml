@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo no mesmo branch cancela o run anterior, que já é irrelevante.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Menor privilégio possível: nenhum job aqui escreve no repositório.
+permissions:
+  contents: read
+
+env:
+  # Hooks de git não têm função dentro do runner.
+  HUSKY: 0
+
+jobs:
+  quality:
+    name: Lint e tipos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # `biome ci` nunca escreve, ao contrário de `biome check`. Roda pelo
+      # bunx para usar o Biome pinado no package.json, e não uma versão
+      # separada que poderia divergir do que roda no pre-commit.
+      - name: Biome
+        run: bunx biome ci --reporter=default --reporter=github
+
+      - name: Typecheck
+        run: bun run typecheck
+
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Vitest
+        run: bun run test:coverage
+
+      - name: Publica o relatório de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: warn
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Vite build
+        run: bun run build
+
+  commitlint:
+    name: Mensagens de commit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      # fetch-depth: 0 é obrigatório: sem o histórico completo o commitlint
+      # não consegue resolver o range base..head.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      # Valida a série inteira de commits do PR. O hook local só vê um commit
+      # por vez, e é pulável com --no-verify — aqui não é.
+      - name: Commitlint
+        run: >-
+          bunx commitlint
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+          --verbose
