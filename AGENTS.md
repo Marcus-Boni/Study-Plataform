@@ -32,9 +32,23 @@ Para commitar, prefira `bun run commit` (prompt guiado do `czg`, já em pt-BR). 
 | ------------ | ------------------------------------------- |
 | `pre-commit` | `lint-staged` → `biome check --write`       |
 | `commit-msg` | `commitlint`                                |
-| `pre-push`   | `tsc --noEmit`                              |
+| `pre-push`   | `tsc --noEmit` e `vitest run`               |
 
-Para pular em uma emergência: `HUSKY=0 git commit …`. Não é o caminho normal.
+Para pular em uma emergência: `HUSKY=0 git commit …`. Não é o caminho normal — e o CI vai pegar de qualquer forma.
+
+### Testes
+
+`bun run test` (uma vez), `bun run test:watch`, `bun run test:coverage`. Testes ficam ao lado do código como `*.test.ts` / `*.test.tsx`.
+
+O `vitest.config.ts` é separado do `vite.config.ts` de propósito: os plugins `tanstackStart()` e `nitro()` sobem servidor e não funcionam sob o runner. `vitest.setup.ts` registra os matchers do jest-dom, faz `cleanup()` e stuba `window.matchMedia` (o jsdom não implementa).
+
+### Variáveis de ambiente
+
+Declare em `src/lib/env.ts` e importe `env` de lá — nunca leia `process.env` / `import.meta.env` direto. `server` não vaza para o bundle, `client` exige prefixo `VITE_`, `shared` vale nos dois lados. Documente a variável nova em `.env.example`.
+
+### CI
+
+`.github/workflows/ci.yml` roda em push na `main` e em todo PR: `quality` (biome ci + typecheck), `test` (vitest com cobertura), `build`, e `commitlint` (só em PR, valida a série inteira de commits). Setup compartilhado em `.github/actions/setup`.
 
 ### Release
 
