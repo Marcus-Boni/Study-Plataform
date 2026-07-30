@@ -1,0 +1,18 @@
+root = true
+
+# Espelha o biome.json (indentStyle: tab) para que qualquer editor,
+# com ou sem a extensão do Biome, produza o mesmo arquivo.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+
+# Formatos que o Biome não formata neste projeto.
+[*.{yml,yaml,md}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
