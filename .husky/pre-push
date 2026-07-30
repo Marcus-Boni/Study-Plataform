@@ -1,2 +1,4 @@
 echo "→ typecheck (tsc --noEmit)"
 tsc --noEmit
+echo "→ testes (vitest run)"
+vitest run --passWithNoTests
