@@ -1,0 +1,36 @@
+# Normaliza tudo para LF no repositório e no working copy.
+# Sem isso, core.autocrlf=true (o padrão no Windows) faz checkout dos hooks
+# do husky com CRLF e o `sh` falha com "\r: command not found".
+* text=auto eol=lf
+
+# Hooks e scripts shell: LF é obrigatório, nunca negociável.
+.husky/** text eol=lf
+*.sh text eol=lf
+
+# Batch/PowerShell só rodam no Windows: mantém CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binários: nunca aplicar conversão de fim de linha nem diff textual.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+
+# Arquivos gerados: colapsados em diffs e excluídos das estatísticas de linguagem.
+bun.lock -diff linguist-generated
+src/routeTree.gen.ts -diff linguist-generated
+
+# CHANGELOG é append-only por seção: união evita conflito bobo em merge.
+CHANGELOG.md merge=union
