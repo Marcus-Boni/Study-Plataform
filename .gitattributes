@@ -32,5 +32,11 @@
 bun.lock -diff linguist-generated
 src/routeTree.gen.ts -diff linguist-generated
 
+# Skills de agentes: ferramental de terceiros versionado (via skills-lock.json),
+# não código do projeto. São 5,3 MB de JS bundlado que faziam o GitHub classificar
+# o repositório como 99,6% JavaScript em vez de TypeScript.
+.claude/** linguist-vendored
+.agents/** linguist-vendored
+
 # CHANGELOG é append-only por seção: união evita conflito bobo em merge.
 CHANGELOG.md merge=union
