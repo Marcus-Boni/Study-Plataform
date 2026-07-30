@@ -1,0 +1,35 @@
+version: 2
+
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Sao_Paulo
+    open-pull-requests-limit: 5
+    # Sem isso o Dependabot abre PRs com mensagem fora de Conventional Commits
+    # e o job `commitlint` reprova o próprio PR dele.
+    commit-message:
+      prefix: build
+      prefix-development: build
+      include: scope
+    # Minor e patch vêm agrupados em um PR só; major vem separado, porque
+    # major é o que exige leitura de changelog.
+    groups:
+      minor-e-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions:
+        patterns: ["*"]
